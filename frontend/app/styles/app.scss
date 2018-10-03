@@ -1,0 +1,173 @@
+html, body {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Helvetica', 'Arial', sans-serif;
+  font-size: 16px;
+
+  &, * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+.ws-status {
+  position: absolute;
+  z-index: 1;
+  top: 1rem;
+  right: 1rem;
+  height: 1rem;
+  line-height: 1rem;
+  font-size: 80%;
+
+  cursor: default;
+
+  .ws-connecting:after {
+    content: "💬";
+    font-size: 0.6rem;
+    padding-left: 0.5em;
+  }
+
+  .ws-connected:before {
+    content: "";
+    display: inline-block;
+    background: red;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 0.4rem;
+    margin-right: 0.2rem;
+  }
+
+  .ws-connected {
+    font-weight: bold;
+  }
+
+  &:hover .ws-connected {
+    display: none;
+  }
+
+  .ws-reconnect {
+    display: none;
+    cursor: pointer;
+  }
+
+  .ws-reconnect.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ws-reconnect:after {
+    content: "🔨";
+    font-size: 0.6rem;
+    padding-left: 0.5em;
+  }
+
+  &:hover .ws-reconnect {
+    display: inline;
+  }
+}
+
+.reactions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  .reaction {
+    position: absolute;
+    cursor: default;
+  }
+}
+
+.reaction-controls {
+  position: absolute;
+  z-index: 1;
+  bottom: 1rem;
+  left: 50%;
+
+  width: 20rem;
+  margin-left: -10.5rem;
+  padding: 0.5rem;
+
+  background: #efefef;
+  border-radius: 0.25rem;
+}
+
+
+.reaction-button {
+  float: left;
+  width: 2rem;
+  height: 2rem;
+  line-height: 2rem;
+  text-align: center;
+  font-size: 1.5rem;
+
+  // de-style button
+  border: none;
+  padding: 0px;
+  margin: 0px;
+  background: transparent;
+  outline: none;
+
+  cursor: pointer;
+
+  &.is-active {
+    animation: reaction-button-press 2s cubic-bezier(0.215, 0.61, 0.355, 1);
+    width: 12rem;
+    height: 12rem;
+    margin: -5rem;
+    font-size: 9rem;
+    transform: scale(0.6) translateY(-2.5rem);
+  }
+
+  &[disabled] {
+    opacity: 0.25;
+    cursor: default;
+  }
+}
+
+.hint {
+  position: absolute;
+  top: 45%;
+  left: 0;
+  right: 0;
+  padding: 0rem 1rem;
+  text-align: center;
+  font-weight: 100;
+  z-index: -1;
+
+  color: #aaa;
+
+  .status {
+    margin-top: 1rem;
+    color: #666;
+    font-weight: normal;
+  }
+
+  cursor: default;
+}
+
+@keyframes reaction-button-press {
+  0%   { transform: scale(0.166667) translateY(-0.5rem); }
+  100% { transform: scale(1) translateY(-3rem); }
+}
+
+@keyframes reaction-repeat {
+  0%   { transform: scale(1.05) translateY(-15%); }
+  100% { transform: scale(0.95) translateY(15%); }
+}
+
+@keyframes reaction-exit {
+  0%   { right: 0; opacity: 1; }
+  30%  { opacity: 0.05; }
+  100% { opacity: 0; right: 1000%; }
+}

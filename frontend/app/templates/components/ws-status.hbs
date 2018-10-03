@@ -1,0 +1,13 @@
+{{#if this.ws.isConnected}}
+  <span class="ws-connected">LIVE</span>
+  <span
+    class="ws-reconnect {{if this.ws.isReconnecting "disabled"}}"
+    onclick={{perform this.ws.reconnect}}
+  >
+    Reconnect
+  </span>
+{{else if this.ws.isReconnecting}}
+  <span class="ws-connecting">Reconnecting</span>
+{{else}}
+  <span class="ws-connecting">Connecting</span>
+{{/if}}

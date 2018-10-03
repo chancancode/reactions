@@ -1,0 +1,4 @@
+/tmp
+/target
+**/xcuserdata
+**/.DS_Store

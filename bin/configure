@@ -1,0 +1,97 @@
+#!/bin/bash
+
+. ./bin/shared.sh
+
+echo -e "Configuring your environment.\n"
+
+if [ -z "${SKIP_DEV:-}" ]; then
+  check_command "docker-compose"
+
+  step "Building development images"
+  try_command "docker-compose build --pull"
+
+  step "Installing cargo watch"
+  if docker-compose run ws cargo watch --version > /dev/null; then
+    ok
+  else
+    try_command "docker-compose run ws cargo install cargo-watch"
+  fi
+fi
+
+if [ -z "${SKIP_DEPLOY:-}" ]; then
+  check_command "docker"
+
+  step "Building deploy image"
+  status "This may take a while..."
+
+  mkdir -p ./tmp/deploy/
+
+  if [ ! -f ./tmp/deploy/.netrc ]; then
+    touch ./tmp/deploy/.netrc
+  fi
+
+  deploy_image=$(docker build --pull -q -f ./deploy/Dockerfile . 2> /dev/null) || true
+
+  if [ -z "${deploy_image}" ]; then
+    fail "Try running ${CYAN}docker build -f ./deploy/Dockerfile .${YELLOW} and check for any errors."
+  else
+    ok
+  fi
+
+  step "Setting up heroku credentials"
+  if docker run "${deploy_image}" grep "heroku.com" /root/.netrc > /dev/null; then
+    ok
+  else
+    container=$(docker run -d "${deploy_image}" tail -f /dev/null)
+
+    status "${YELLOW}Press Ctrl-D to skip setting up heroku for deploy${CLEAR}\n\n"
+
+    if docker exec -it "${container}" heroku login; then
+      logged_in="1"
+    else
+      logged_in=""
+    fi
+
+    # Clear the heroku output
+    clear_status
+
+    for i in {1..15}; do
+      echo -e "\r\033[K"
+    done
+
+    echo -e "\033[16A"
+
+    if [ -n "${logged_in}" ]; then
+      docker cp "${container}:/root/.netrc" ./tmp/deploy/.netrc
+      docker build -q -f ./deploy/Dockerfile . > /dev/null
+    fi
+
+    docker kill "${container}" > /dev/null
+
+    if [ -z "${logged_in}" ]; then
+      fail "Invalid heroku credentials!"
+    elif grep --quiet "heroku.com" ./tmp/deploy/.netrc; then
+      ok
+    else
+      skip
+    fi
+  fi
+
+  step "Updating heroku CLI"
+  status "Checking for updates, this may take a while..."
+  if docker run "${deploy_image}" bash -c "apt-get update > /dev/null && apt-get -u upgrade --assume-no | grep heroku > /dev/null"; then
+    status "Installing update, this may take a while..."
+
+    deploy_image=$(docker build -q -f ./deploy/Dockerfile --build-arg HEROKU_VERSION=`date +%s` .)
+
+    if [ -z "${deploy_image}" ]; then
+      fail "Try running ${CYAN}docker build -f ./deploy/Dockerfile --build-arg HEROKU_VERSION=`date +%s` .${YELLOW} and check for any errors."
+    else
+      ok
+    fi
+  else
+    ok
+  fi
+fi
+
+echo -ne "\n${GREEN}You're good to go!${CLEAR}\n\n"

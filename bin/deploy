@@ -1,0 +1,24 @@
+#!/bin/bash
+
+. ./bin/shared.sh
+
+check_command "docker"
+check_exists -f "./tmp/deploy/.netrc"
+
+step "Building deploy image"
+status "This may take a while..."
+image=$(docker build -q -f ./deploy/Dockerfile .) || true
+if [ -n "$image" ]; then
+  ok
+else
+  fail
+fi
+
+step "Checking heroku credentials"
+if docker run "${image}" grep "heroku.com" /root/.netrc  > /dev/null; then
+  ok
+  echo ""
+  docker run "${image}"
+else
+  fail
+fi

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+. ./bin/shared.sh
+
+check_command "docker-compose"
+
+step "Building development images"
+try_command "docker-compose build"
+
+step "Checking for cargo watch"
+if docker-compose run ws cargo watch --version > /dev/null; then
+  ok
+  echo ""
+  docker-compose up
+else
+  fail
+fi

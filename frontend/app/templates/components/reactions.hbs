@@ -1,0 +1,6 @@
+{{#each this.reactions key="id" as |r|}}
+  {{! template-lint-disable no-inline-styles }}
+  <div class="reaction" style={{r.style}}>
+    {{r.emoji}}
+  </div>
+{{/each}}
